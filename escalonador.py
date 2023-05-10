@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 class Tarefa:
     def __init__(self, nome, tempo):
@@ -35,12 +36,38 @@ class Escalonador:
     def escalonar(self, tarefas):
         if self.algoritmo == "SJF":
             tarefas.sort(key=lambda tarefa: tarefa.tempo)
-        
-        processador_atual = 0
-        for tarefa in tarefas:
-            self.processadores[processador_atual].adicionar_tarefa(tarefa)
+            processador_atual = 0
+            for tarefa in tarefas:
+                self.processadores[processador_atual].adicionar_tarefa(tarefa)
+                processador_atual = (processador_atual + 1) % self.num_processadores
+            return
 
-            processador_atual = (processador_atual + 1) % self.num_processadores
+        if self.algoritmo == "LJF": 
+            tarefas.sort(key=lambda tarefa: tarefa.tempo, reverse=True)
+            processador_atual = 0
+            for tarefa in tarefas:
+                processador_utilizado = 0
+                menor_tempo = np.Inf
+                for processador in self.processadores:
+                    if processador.tempo_atual < menor_tempo:
+                        processador_utilizado = processador.numero
+                        menor_tempo = processador.tempo_atual
+                self.processadores[processador_utilizado].adicionar_tarefa(tarefa)
+            return
+
+        '''
+        TODO:
+        Algoritmos
+        [ ] - FCFS
+        [ ] - SPN ou SJF
+        [ ] - SRT
+        [ ] - RR
+        [ ] - PRIOc
+        [ ] - PRIOp
+        [ ] - PRIOd
+
+        '''
+
         
     def exportar(self, arquivo="saida.txt"):
         with open(arquivo, "w") as f:
@@ -63,7 +90,7 @@ if __name__ == "__main__":
     nome_arquivo = sys.argv[1]
     num_processadores = int(sys.argv[2])
 
-    escalonador = Escalonador(num_processadores=num_processadores, algoritmo="SJF")
+    escalonador = Escalonador(num_processadores=num_processadores, algoritmo="LJF")
     tarefas = ler_tarefas(nome_arquivo)
     escalonador.escalonar(tarefas)
     escalonador.exportar(sys.argv[3])
